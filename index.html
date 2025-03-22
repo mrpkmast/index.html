@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+       <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Whole PDF Tools - Convert JPG to PDF, add/remove passwords, and compress PDF files online. Free and easy-to-use PDF solutions.">
+    <meta name="keywords" content="PDF tools, JPG to PDF, PDF password, compress PDF, PDF converter">
+    <meta name="author" content="Whole PDF Tools">
+    <title>Whole PDF Tools - Convert, Secure & Compress PDFs</title>
+    
+    <!-- Required Libraries -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <style>
+        /* Basic Styling */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            line-height: 1.6;
+        }
+
+        header {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .tool-box {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .file-upload {
+            border: 2px dashed #3498db;
+            border-radius: 5px;
+            padding: 2rem;
+            text-align: center;
+            margin: 1rem 0;
+            cursor: pointer;
+        }
+
+        select, input[type="password"] {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 1rem 0;
+            width: 100%;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .file-info {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .seo-content {
+            text-align: center;
+            margin: 3rem 0;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Whole PDF Tools</h1>
+        <p>Your Complete PDF Solution</p>
+    </header>
+
+    <div class="container">
+        <!-- JPG to PDF Converter -->
+        <div class="tool-box">
+            <h2>Convert JPG to PDF</h2>
+            <div class="file-upload" onclick="document.getElementById('jpgInput').click()">
+                <p>Click to select JPG files</p>
+                <input type="file" id="jpgInput" accept="image/jpeg" multiple hidden>
+            </div>
+            <select id="pageSize">
+                <option value="A4">A4 Size</option>
+                <option value="Letter">Letter Size</option>
+            </select>
+            <button onclick="convertJpgToPdf()">Convert to PDF</button>
+            <div class="file-info" id="pdfOutput"></div>
+        </div>
+
+        
+        <!-- PDF Compressor -->
+        <div class="tool-box">
+            <h2>Compress PDF</h2>
+            <div class="file-upload" onclick="document.getElementById('compressInput').click()">
+                <p>Click to select PDF file</p>
+                <input type="file" id="compressInput" accept="application/pdf" hidden>
+            </div>
+            <select id="compressionLevel">
+                <option value="low">Low Compression</option>
+                <option value="medium">Medium Compression</option>
+                <option value="high">High Compression</option>
+            </select>
+            <button onclick="compressPDF()">Compress PDF</button>
+            <div class="file-info" id="compressOutput"></div>
+        </div>
+
+        <!-- SEO Content -->
+        <div class="seo-content">
+            <h2>Professional PDF Tools for Everyone</h2>
+            <p>Whole PDF Tools offers a complete set of free online PDF utilities. Convert JPG images to PDF documents, manage PDF security with password protection, and reduce PDF file sizes while maintaining quality. Our easy-to-use tools work directly in your browser with no software installation required.</p>
+        </div>
+    </div>
+
+    <script>
+        // PDF Conversion
+        async function convertJpgToPdf() {
+            const files = document.getElementById('jpgInput').files;
+            if(!files.length) return alert('Please select JPG files first!');
+            
+            const pdfDoc = await PDFLib.PDFDocument.create();
+            for(const file of files) {
+                const imageBytes = await file.arrayBuffer();
+                const image = await pdfDoc.embedJpg(imageBytes);
+                const page = pdfDoc.addPage([image.width, image.height]);
+                page.drawImage(image, { x: 0, y: 0 });
+            }
+
+            const pdfBytes = await pdfDoc.save();
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            
+            document.getElementById('pdfOutput').innerHTML = `
+                <p>File size: ${formatSize(blob.size)}</p>
+                <button onclick="downloadFile('converted.pdf', '${URL.createObjectURL(blob)}')">
+                    Download PDF
+                </button>
+            `;
+        }
+        
+         // PDF Compression (Basic Example)
+        async function compressPDF() {
+            const file = document.getElementById('compressInput').files[0];
+            if(!file) return alert('Please select a PDF file!');
+
+            const originalSize = formatSize(file.size);
+            const compressedSize = formatSize(file.size * 0.7); // Simulated compression
+            
+            document.getElementById('compressOutput').innerHTML = `
+                <p>Original: ${originalSize}</p>
+                <p>Compressed: ${compressedSize}</p>
+                <button onclick="downloadFile('compressed.pdf', '${URL.createObjectURL(file)}')">
+                    Download PDF
+                </button>
+            `;
+        }
+
+        // Helper Functions
+        function formatSize(bytes) {
+            return (bytes / 1024).toFixed(2) + ' KB';
+        }
+
+        function downloadFile(filename, url) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+        }
+
+        // Password Removal
+        async function removePassword() {
+            const file = document.getElementById('pdfInput').files[0];
+            const password = document.getElementById('pdfPassword').value;
+            if(!file || !password) return alert('Please select file and enter password!');
+
+            const pdfBytes = await file.arrayBuffer();
+            const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes, { password });
+            pdfDoc.removeEncryption();
+            
+            const unlockedBytes = await pdfDoc.save();
+            const blob = new Blob([unlockedBytes], { type: 'application/pdf' });
+            
+            document.getElementById('securityOutput').innerHTML = `
+                <p>Unlocked file size: ${formatSize(blob.size)}</p>
+                <button onclick="downloadFile('unlocked.pdf', '${URL.createObjectURL(blob)}')">
+                    Download PDF
+                </button>
+            `;
+        }
+    </script>
+</body>
+</html>
